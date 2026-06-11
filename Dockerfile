@@ -16,4 +16,4 @@ COPY . .
 # Directories are created at startup by the app, but pre-create to be safe
 RUN mkdir -p uploads clips
 
-CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
