@@ -1,0 +1,8 @@
+.env
+uploads/
+clips/
+__pycache__/
+*.pyc
+*.pyo
+server.log
+server.err

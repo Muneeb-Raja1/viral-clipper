@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pip install *)",
+      "Skill(run)",
+      "PowerShell(Start-Sleep -Seconds 3; Invoke-RestMethod -Uri \"http://localhost:8000/\" -Method Get -MaximumRedirection 0 -ErrorAction SilentlyContinue; $null = $?; curl.exe -s -o $null -w \"%{http_code}\" http://localhost:8000/)",
+      "PowerShell($json = [System.Text.Encoding]::UTF8.GetBytes\\('{\"url\":\"https://www.youtube.com/watch?v=dQw4w9WgXcQ\"}'\\); $resp = Invoke-RestMethod -Uri \"http://localhost:8000/process\" -Method POST -Body $json -ContentType \"application/json\"; $resp)",
+      "PowerShell(Start-Sleep -Seconds 5; Invoke-RestMethod -Uri \"http://localhost:8000/status/b654905d\" | ConvertTo-Json -Depth 3)",
+      "PowerShell($json = [System.Text.Encoding]::UTF8.GetBytes\\('{\"url\":\"https://www.youtube.com/watch?v=dQw4w9WgXcQ\"}'\\); $resp = Invoke-RestMethod -Uri \"http://localhost:8000/process\" -Method POST -Body $json -ContentType \"application/json\"; Write-Host \"Job ID:\" $resp.job_id; $global:JOB_ID = $resp.job_id)",
+      "PowerShell(Start-Sleep -Seconds 10; Invoke-RestMethod -Uri \"http://localhost:8000/status/fb83a322\" | Select-Object status, progress, message)",
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:8000/status/fb83a322\" | Select-Object -ExpandProperty error)",
+      "PowerShell(yt-dlp *)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Start-Sleep -Seconds 12; Invoke-RestMethod -Uri \"http://localhost:8000/status/e05ea376\" | Select-Object status, progress, message)",
+      "PowerShell(Start-Sleep -Seconds 20; Invoke-RestMethod -Uri \"http://localhost:8000/status/e05ea376\" | Select-Object status, progress, message)",
+      "PowerShell(for \\($i=0; $i -lt 30; $i++\\) { Start-Sleep -Seconds 10; $s = Invoke-RestMethod -Uri \"http://localhost:8000/status/f9ce477e\"; Write-Host \"[$\\($s.progress\\)%] $\\($s.status\\) — $\\($s.message\\)\"; if \\($s.status -eq \"done\" -or $s.status -eq \"error\"\\) { break } })",
+      "PowerShell(Start-Process -FilePath \"powershell.exe\" -ArgumentList \"-NoProfile\", \"-Command\", \"cd 'C:\\\\Users\\\\Pc\\\\viral-clipper'; uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload 2>&1 | Tee-Object -FilePath server.log\" -WindowStyle Hidden; Start-Sleep -Seconds 4; Get-Content server.log -Tail 20)",
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:8000/status/e74c82c6\" | ConvertTo-Json -Depth 5)",
+      "PowerShell(ffmpeg *)",
+      "PowerShell(try { Invoke-WebRequest -Uri \"http://localhost:8000/\" -TimeoutSec 3 -UseBasicParsing | Select-Object -ExpandProperty StatusCode } catch { $_.Exception.Message })",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(Get-NetTCPConnection *)"
+    ]
+  }
+}

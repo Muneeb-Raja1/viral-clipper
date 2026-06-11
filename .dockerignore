@@ -1,0 +1,11 @@
+.env
+.git
+.claude
+uploads/
+clips/
+__pycache__/
+*.pyc
+*.pyo
+server.log
+server.err
+start.ps1
