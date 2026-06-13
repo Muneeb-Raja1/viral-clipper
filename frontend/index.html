@@ -198,6 +198,23 @@
     font-size: .9rem;
     margin-top: 16px;
   }
+  #errorBox.yt-block {
+    background: #f59e0b15;
+    border-color: #f59e0b44;
+    color: #fcd34d;
+  }
+  #errorBox.yt-block .yt-block-msg {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  #errorBox.yt-block .yt-block-msg strong {
+    font-size: .95rem;
+  }
+  #errorBox.yt-block .yt-block-msg span {
+    font-size: .82rem;
+    opacity: .85;
+  }
 
   /* ── Clips Grid ── */
   #clipsSection { display: none; max-width: 680px; margin: 0 auto; }
@@ -662,9 +679,26 @@ function closeModal(e) {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
+const YT_BLOCK_KEYWORDS = ['sign in', 'bot', 'download failed', 'http error 403', 'confirm your age', 'not available', 'missing_pot', 'po token', 'private video'];
+
+function isYouTubeBlock(msg) {
+  const lower = msg.toLowerCase();
+  return YT_BLOCK_KEYWORDS.some(k => lower.includes(k));
+}
+
 function showError(msg) {
   const box = document.getElementById('errorBox');
-  box.textContent = '✕  ' + msg;
+  if (isYouTubeBlock(msg)) {
+    box.className = 'yt-block';
+    box.innerHTML = `<div class="yt-block-msg">
+      <strong>⚠ YouTube is blocking this download from the cloud server.</strong>
+      <span>YouTube blocks downloads from cloud server IPs. Please run this tool locally on your PC for YouTube videos.</span>
+      <span style="opacity:.6;font-size:.78rem;">Technical detail: ${escHtml(msg)}</span>
+    </div>`;
+  } else {
+    box.className = '';
+    box.textContent = '✕  ' + msg;
+  }
   box.style.display = 'block';
 }
 
