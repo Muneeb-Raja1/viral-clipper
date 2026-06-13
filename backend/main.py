@@ -203,6 +203,7 @@ def download_video(url: str, out_dir: Path) -> Path:
         "--no-playlist",
         "--no-warnings",
         "--no-check-certificates",
+        "--extractor-args", "youtube:player_client=ios;formats=missing_pot",
         "-o", str(out_dir / "video.%(ext)s"),
     ]
     cookies_file = _resolve_cookies()
