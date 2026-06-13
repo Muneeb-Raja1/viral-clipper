@@ -183,8 +183,21 @@ def run_pipeline(job_id: str, url: str):
         update_job(job_id, status="error", progress=0, message=msg, error=msg)
 
 
+def _resolve_cookies() -> str | None:
+    """Return a path to a cookies file, or None if unavailable.
+    Prefers the YOUTUBE_COOKIES env var (Railway) over a local file."""
+    content = os.getenv("YOUTUBE_COOKIES", "").strip()
+    if content:
+        tmp = Path("/tmp/yt_cookies.txt")
+        tmp.write_text(content)
+        return str(tmp)
+    local = BASE_DIR / "cookies.txt"
+    if local.exists():
+        return str(local)
+    return None
+
+
 def download_video(url: str, out_dir: Path) -> Path:
-    cookies_path = BASE_DIR / "cookies.txt"
     cmd = [
         "yt-dlp",
         "-f", "bestvideo+bestaudio/best",
@@ -201,8 +214,9 @@ def download_video(url: str, out_dir: Path) -> Path:
         "--add-header", "Accept-Language:en-US,en;q=0.9",
         "-o", str(out_dir / "video.%(ext)s"),
     ]
-    if cookies_path.exists():
-        cmd += ["--cookies", str(cookies_path)]
+    cookies_file = _resolve_cookies()
+    if cookies_file:
+        cmd += ["--cookies", cookies_file]
     cmd.append(url)
 
     result = subprocess.run(cmd, capture_output=True)
