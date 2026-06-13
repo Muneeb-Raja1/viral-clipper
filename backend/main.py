@@ -1,4 +1,4 @@
-import os, uuid, json, subprocess, re, traceback, shutil, threading
+import os, uuid, json, subprocess, re, traceback, shutil, threading, base64
 from pathlib import Path
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
@@ -185,12 +185,16 @@ def run_pipeline(job_id: str, url: str):
 
 def _resolve_cookies() -> str | None:
     """Return a path to a cookies file, or None if unavailable.
-    Prefers the YOUTUBE_COOKIES env var (Railway) over a local file."""
-    content = os.getenv("YOUTUBE_COOKIES", "").strip()
-    if content:
-        tmp = Path("/tmp/yt_cookies.txt")
-        tmp.write_text(content)
-        return str(tmp)
+    YOUTUBE_COOKIES env var must be base64-encoded (single-line safe for Railway)."""
+    encoded = os.getenv("YOUTUBE_COOKIES", "").strip()
+    if encoded:
+        try:
+            decoded = base64.b64decode(encoded).decode("utf-8")
+            tmp = Path("/tmp/yt_cookies.txt")
+            tmp.write_text(decoded)
+            return str(tmp)
+        except Exception:
+            pass
     local = BASE_DIR / "cookies.txt"
     if local.exists():
         return str(local)
