@@ -200,18 +200,9 @@ def _resolve_cookies() -> str | None:
 def download_video(url: str, out_dir: Path) -> Path:
     cmd = [
         "yt-dlp",
-        "-f", "bv*[vcodec^=avc]+ba[ext=m4a]/b[ext=mp4]/b",
-        "--merge-output-format", "mp4",
         "--no-playlist",
         "--no-warnings",
         "--no-check-certificates",
-        "--user-agent", (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/125.0.0.0 Safari/537.36"
-        ),
-        "--extractor-args", "youtube:player_client=android,web",
-        "--add-header", "Accept-Language:en-US,en;q=0.9",
         "-o", str(out_dir / "video.%(ext)s"),
     ]
     cookies_file = _resolve_cookies()
