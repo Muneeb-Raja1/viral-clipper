@@ -200,7 +200,7 @@ def _resolve_cookies() -> str | None:
 def download_video(url: str, out_dir: Path) -> Path:
     cmd = [
         "yt-dlp",
-        "-f", "bestvideo+bestaudio/best",
+        "-f", "bestvideo*+bestaudio/best",
         "--merge-output-format", "mp4",
         "--no-playlist",
         "--no-warnings",
