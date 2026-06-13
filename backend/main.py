@@ -184,7 +184,7 @@ def run_pipeline(job_id: str, url: str):
 
 
 _YT_BASE_ARGS = [
-    "-f", "bestvideo[height<=1080]+bestaudio/bestvideo+bestaudio/best",
+    "-f", "bestvideo+bestaudio/best",
     "--merge-output-format", "mp4",
     "--no-playlist",
     "--no-warnings",
