@@ -19,7 +19,17 @@
       "PowerShell(ffmpeg *)",
       "PowerShell(try { Invoke-WebRequest -Uri \"http://localhost:8000/\" -TimeoutSec 3 -UseBasicParsing | Select-Object -ExpandProperty StatusCode } catch { $_.Exception.Message })",
       "PowerShell(Stop-Process *)",
-      "PowerShell(Get-NetTCPConnection *)"
+      "PowerShell(Get-NetTCPConnection *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(rm C:/Users/Pc/viral-clipper/Dockerfile)",
+      "Bash(rm C:/Users/Pc/viral-clipper/railway.json)",
+      "Bash(git pull *)",
+      "Bash(git stash *)",
+      "Bash(git rm *)",
+      "Bash(git rebase *)",
+      "Bash(GIT_EDITOR=true git rebase --continue)"
     ]
   }
 }
