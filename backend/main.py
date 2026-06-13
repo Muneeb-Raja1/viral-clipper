@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 from groq import Groq
 
 load_dotenv()
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 BASE_DIR = Path(__file__).parent.parent
 CLIPS_DIR = BASE_DIR / "clips"
 UPLOADS_DIR = BASE_DIR / "uploads"
@@ -26,13 +25,24 @@ app.add_middleware(
 app.mount("/clips", StaticFiles(directory=str(CLIPS_DIR)), name="clips")
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "frontend")), name="static")
 
-groq_client = Groq(api_key=GROQ_API_KEY)
+_groq_client = None
+
+def get_groq_client() -> Groq:
+    global _groq_client
+    if _groq_client is None:
+        _groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    return _groq_client
 
 jobs: dict = {}
 
 
 class VideoRequest(BaseModel):
     url: str
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 
 @app.get("/")
@@ -197,7 +207,7 @@ def run_cmd(cmd: list):
 
 def transcribe_audio(audio_path: Path) -> list:
     with open(audio_path, "rb") as f:
-        transcription = groq_client.audio.transcriptions.create(
+        transcription = get_groq_client().audio.transcriptions.create(
             model="whisper-large-v3-turbo",
             file=f,
             response_format="verbose_json",
@@ -236,7 +246,7 @@ def pick_viral_moments(transcript: str) -> list:
         f"Transcript:\n{transcript[:8000]}"
     )
 
-    resp = groq_client.chat.completions.create(
+    resp = get_groq_client().chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
             {"role": "system", "content": system_prompt},
