@@ -173,27 +173,48 @@ def run_pipeline(job_id: str, url: str):
         })
 
 
+_YT_BASE_ARGS = [
+    "-f", "bestvideo[height<=1080]+bestaudio/bestvideo+bestaudio/best",
+    "--merge-output-format", "mp4",
+    "--no-playlist",
+    "--no-warnings",
+    "--no-check-certificates",
+    "--user-agent", (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/125.0.0.0 Safari/537.36"
+    ),
+]
+
+# Ordered list of player clients to try — android bypasses bot detection on
+# headless servers more reliably than web when cookies aren't available.
+_PLAYER_CLIENTS = ["web", "android", "ios"]
+
+
 def download_video(url: str, out_dir: Path) -> Path:
-    cmd = [
-        "yt-dlp",
-        "-f", "bestvideo[height<=1080]+bestaudio/bestvideo+bestaudio/best",
-        "--merge-output-format", "mp4",
-        "-o", str(out_dir / "video.%(ext)s"),
-        "--no-playlist",
-        "--no-warnings",
-        url,
-    ]
-    result = subprocess.run(cmd, capture_output=True)
-    if result.returncode != 0:
+    last_error = "yt-dlp exited with a non-zero code"
+
+    for client in _PLAYER_CLIENTS:
+        out_tmpl = str(out_dir / "video.%(ext)s")
+        cmd = [
+            "yt-dlp",
+            *_YT_BASE_ARGS,
+            "--extractor-args", f"youtube:player_client={client}",
+            "-o", out_tmpl,
+            url,
+        ]
+        result = subprocess.run(cmd, capture_output=True)
+        if result.returncode == 0:
+            for f in out_dir.iterdir():
+                if f.stem == "video":
+                    return f
+            raise ValueError("Downloaded file not found after yt-dlp.")
+
         stderr = result.stderr.decode().strip()
         stdout = result.stdout.decode().strip()
-        detail = stderr or stdout or "yt-dlp exited with a non-zero code"
-        raise ValueError(f"Download failed: {detail[-300:]}")
+        last_error = stderr or stdout or last_error
 
-    for f in out_dir.iterdir():
-        if f.stem == "video":
-            return f
-    raise ValueError("Downloaded file not found after yt-dlp.")
+    raise ValueError(f"Download failed: {last_error[-400:]}")
 
 
 def run_cmd(cmd: list):
