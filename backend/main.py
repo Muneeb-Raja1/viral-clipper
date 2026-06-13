@@ -184,6 +184,7 @@ def run_pipeline(job_id: str, url: str):
 
 
 def download_video(url: str, out_dir: Path) -> Path:
+    cookies_path = BASE_DIR / "cookies.txt"
     cmd = [
         "yt-dlp",
         "-f", "bestvideo+bestaudio/best",
@@ -196,11 +197,14 @@ def download_video(url: str, out_dir: Path) -> Path:
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/125.0.0.0 Safari/537.36"
         ),
-        "--extractor-args", "youtube:player_client=android,web",
+        "--extractor-args", "youtube:player_client=tv_embedded,android,web;po_token=web+undefined",
         "--add-header", "Accept-Language:en-US,en;q=0.9",
         "-o", str(out_dir / "video.%(ext)s"),
-        url,
     ]
+    if cookies_path.exists():
+        cmd += ["--cookies", str(cookies_path)]
+    cmd.append(url)
+
     result = subprocess.run(cmd, capture_output=True)
     if result.returncode != 0:
         stderr = result.stderr.decode().strip()
