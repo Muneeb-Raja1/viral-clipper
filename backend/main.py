@@ -33,7 +33,29 @@ def get_groq_client() -> Groq:
         _groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
     return _groq_client
 
-jobs: dict = {}
+JOB_DIR = Path("/tmp/jobs")
+JOB_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _job_path(job_id: str) -> Path:
+    return JOB_DIR / f"{job_id}.json"
+
+
+def read_job(job_id: str) -> dict | None:
+    try:
+        return json.loads(_job_path(job_id).read_text())
+    except FileNotFoundError:
+        return None
+
+
+def write_job(job_id: str, data: dict):
+    _job_path(job_id).write_text(json.dumps(data))
+
+
+def update_job(job_id: str, **kwargs):
+    data = read_job(job_id) or {}
+    data.update(kwargs)
+    write_job(job_id, data)
 
 
 class VideoRequest(BaseModel):
@@ -53,20 +75,20 @@ def index():
 @app.post("/process")
 async def process(req: VideoRequest, bg: BackgroundTasks):
     job_id = str(uuid.uuid4())[:8]
-    jobs[job_id] = {
+    write_job(job_id, {
         "status": "queued",
         "progress": 0,
         "message": "Job queued...",
         "clips": [],
         "error": None,
-    }
+    })
     bg.add_task(run_pipeline, job_id, req.url)
     return {"job_id": job_id}
 
 
 @app.get("/status/{job_id}")
 def get_status(job_id: str):
-    job = jobs.get(job_id)
+    job = read_job(job_id)
     if not job:
         return JSONResponse({"error": "Job not found"}, status_code=404)
     return job
@@ -74,7 +96,7 @@ def get_status(job_id: str):
 
 @app.delete("/job/{job_id}")
 def delete_job(job_id: str):
-    jobs.pop(job_id, None)
+    _job_path(job_id).unlink(missing_ok=True)
     shutil.rmtree(UPLOADS_DIR / job_id, ignore_errors=True)
     return {"ok": True}
 
@@ -89,7 +111,7 @@ def _delete_later(path: Path, delay: int = 3600):
 
 
 def upd(job_id: str, status: str, progress: int, message: str):
-    jobs[job_id].update({"status": status, "progress": progress, "message": message})
+    update_job(job_id, status=status, progress=progress, message=message)
 
 
 def run_pipeline(job_id: str, url: str):
@@ -118,12 +140,10 @@ def run_pipeline(job_id: str, url: str):
         upd(job_id, "analyzing", 60, "AI analyzing for viral moments...")
         moments = pick_viral_moments(transcript)
         if not moments:
-            jobs[job_id].update({
-                "status": "done",
-                "progress": 100,
-                "message": "No viral moments found in this video.",
-                "clips": [],
-            })
+            update_job(job_id,
+                status="done", progress=100,
+                message="No viral moments found in this video.", clips=[],
+            )
             return
 
         clips = []
@@ -152,12 +172,7 @@ def run_pipeline(job_id: str, url: str):
         # Schedule clip folder removal 1 hour after the job completes
         _delete_later(clip_dir, delay=3600)
 
-        jobs[job_id].update({
-            "status": "done",
-            "progress": 100,
-            "message": "All clips ready!",
-            "clips": clips,
-        })
+        update_job(job_id, status="done", progress=100, message="All clips ready!", clips=clips)
 
     except Exception as exc:
         traceback.print_exc()
@@ -165,12 +180,7 @@ def run_pipeline(job_id: str, url: str):
         msg = str(exc).strip() or type(exc).__name__
         if "CalledProcessError" in msg:
             msg = "ffmpeg error — video may be unsupported or too short."
-        jobs[job_id].update({
-            "status": "error",
-            "progress": 0,
-            "message": msg,
-            "error": msg,
-        })
+        update_job(job_id, status="error", progress=0, message=msg, error=msg)
 
 
 _YT_BASE_ARGS = [
