@@ -1,4 +1,5 @@
 .env
+cookies.txt
 uploads/
 clips/
 __pycache__/
